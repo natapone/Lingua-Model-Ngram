@@ -7,6 +7,7 @@ build_requires 'Test::Perl::Critic';
 
 requires 'Try::Tiny';
 requires 'Data::Dumper';
+requires 'Moose';
 
 test_requires 'Test::More';
 
