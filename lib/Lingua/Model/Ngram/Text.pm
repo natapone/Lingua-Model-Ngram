@@ -42,7 +42,7 @@ sub ngram () {
     if ($add_start_stop) {
         my $start_length = $self->markov_order;
         # should count only 1 '*'
-        if ($window_size == 0) {
+        if ($window_size <= 1) {
             $start_length = 1;
         }
         my @start_tokens = (START_SEQ) x $start_length;

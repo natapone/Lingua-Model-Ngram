@@ -134,7 +134,6 @@ subtest 'Ngram with START STOP sequence' => sub {
     $ngrams = $text_engine->ngram($short_tokens, $params);
     $expected_ngrams = [
             ['*'],
-            ['*'],
             [1],
             [2],
             ['STOP'],
