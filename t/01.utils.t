@@ -50,7 +50,7 @@ subtest 'Ngram sequence' => sub {
     $expected_ngrams = [];
     is_deeply($ngrams, $expected_ngrams, "return empty if tokens are shorter than window size");
     
-    # use window size = [3, 2, 1] to calculate 'linear interpolation estimation'
+    # use window size = [3, 2, 1, 0] to calculate 'linear interpolation estimation'
     $params = {
         window_size => 2,
     };
@@ -85,6 +85,19 @@ subtest 'Ngram sequence' => sub {
             [10],
     ];
     is_deeply($ngrams, $expected_ngrams, "return default uni-grams correctly");
+    
+    # use window size = 0 to get array for corpus counting
+    $params = {
+        window_size => 0,
+    };
+    $ngrams = $text_engine->ngram($tokens, $params);
+    $expected_ngrams = [
+          'CORPUS', 'CORPUS', 'CORPUS',
+          'CORPUS', 'CORPUS', 'CORPUS',
+          'CORPUS', 'CORPUS', 'CORPUS',
+          'CORPUS'
+        ];
+    is_deeply($ngrams, $expected_ngrams, "return grams for corpus count correctly");
     
 #    print Dumper($ngrams);
 };
@@ -127,6 +140,18 @@ subtest 'Ngram with START STOP sequence' => sub {
             ['STOP'],
     ];
     is_deeply($ngrams, $expected_ngrams, "return uni-grams with START, STOP sequence");
+    
+    $params = {
+        start_stop => 1,
+        window_size => 0,
+    };
+    $ngrams = $text_engine->ngram($tokens, $params);
+    $expected_ngrams = [
+          'CORPUS', 'CORPUS', 'CORPUS', 'CORPUS',
+          'CORPUS', 'CORPUS', 'CORPUS', 'CORPUS',
+          'CORPUS', 'CORPUS', 'CORPUS', 'CORPUS'
+        ];
+    is_deeply($ngrams, $expected_ngrams, "return grams for corpus count correctly");
     
 #    print Dumper($ngrams);
 };

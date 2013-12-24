@@ -20,10 +20,6 @@ my $bi_ngrams = [
 
 subtest 'Add N-grams' => sub {
     
-#    for my $gram (@$tri_ngrams) {
-#        print Dumper($gram );
-#    }
-    
     my $ngram_counter = Lingua::Model::Ngram::Count->new();
     my $ngram_key = $ngram_counter->ngrams_to_key([1,2,3]);
     my $expected_key = '1-2-3';
@@ -60,5 +56,10 @@ subtest 'Add N-grams' => sub {
     is_deeply($ngram_counter->return_ngram_count, $expected_count, "ngram_count is correct");
     
 };
+
+#subtest 'Count N-grams for 2nd Markov' => sub {
+#    
+#    
+#};
 
 
