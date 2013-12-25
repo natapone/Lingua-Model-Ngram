@@ -1,84 +1,97 @@
 package Lingua::Model::Ngram;
 
-use 5.014002;
 use strict;
 use warnings;
+use Moose;
 
-require Exporter;
+use Lingua::Model::Ngram::Text;
+use Lingua::Model::Ngram::Count;
 
-our @ISA = qw(Exporter);
-
-# Items to export into callers namespace by default. Note: do not export
-# names by default without a very good reason. Use EXPORT_OK instead.
-# Do not simply export all your public functions/methods/constants.
-
-# This allows declaration	use Lingua::Model::Ngram ':all';
-# If you do not need this, moving things directly into @EXPORT or @EXPORT_OK
-# will save memory.
-our %EXPORT_TAGS = ( 'all' => [ qw(
-	
-) ] );
-
-our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
-
-our @EXPORT = qw(
-	
-);
+use Data::Dumper;
 
 our $VERSION = '0.01';
 
-
-# Preloaded methods go here.
-
-1;
-__END__
-# Below is stub documentation for your module. You'd better edit it!
-
 =head1 NAME
-
-Lingua::Model::Ngram - Perl extension for blah blah blah
-
-=head1 SYNOPSIS
-
-  use Lingua::Model::Ngram;
-  blah blah blah
+Lingua::Model::Ngram
 
 =head1 DESCRIPTION
-
-Stub documentation for Lingua::Model::Ngram, created by h2xs. It looks like the
-author of the extension was negligent enough to leave the stub
-unedited.
-
-Blah blah blah.
-
-=head2 EXPORT
-
-None by default.
-
-
-
-=head1 SEE ALSO
-
-Mention other useful documentation such as the documentation of
-related modules or operating system documentation (such as man pages
-in UNIX), or any relevant external documentation such as RFCs or
-standards.
-
-If you have a mailing list set up for your module, mention it here.
-
-If you have a web site set up for your module, mention it here.
-
-=head1 AUTHOR
-
-Dong, E<lt>dong@E<gt>
-
-=head1 COPYRIGHT AND LICENSE
-
-Copyright (C) 2013 by Dong
-
-This library is free software; you can redistribute it and/or modify
-it under the same terms as Perl itself, either Perl version 5.14.2 or,
-at your option, any later version of Perl 5 you may have available.
-
+Ngrams model helper
 
 =cut
+
+has 'markov_order' => (is => 'ro', isa => 'Int', lazy => 1, default => 2);
+
+has 'text_engine' => (is => 'ro', isa => 'Lingua::Model::Ngram::Text', 
+                    lazy => 1, builder => '_build_text_engine');
+
+has 'ngram_counter' => (is => 'ro', isa => 'Lingua::Model::Ngram::Count', 
+                    lazy => 1, builder => '_build_ngram_counter');
+
+sub _build_text_engine {
+    return Lingua::Model::Ngram::Text->new();
+}
+
+sub _build_ngram_counter {
+    return Lingua::Model::Ngram::Count->new();
+}
+
+sub _probability_combination {
+    my $self = shift;
+    my $grams = shift;
+    
+    my $params = {
+        start_stop => 1,
+        window_size => $self->markov_order + 1,
+    };
+    my $ngrams = $self->text_engine->ngram($grams, $params);
+    
+    # extract sequence
+    my @combos;
+    for my $ws (@$ngrams) {
+#        print Dumper($ws);
+        
+        my @lambda;
+        my $ngram_length = scalar @$ws;
+        
+        for my $num_count (0 .. $ngram_length - 1) {
+            my @w_numerator = @$ws[$num_count .. $ngram_length - 1];
+            
+            my $num_length = scalar @w_numerator;
+            my @w_denominator = @w_numerator [0 .. $num_length - 2];
+            
+#            print "--- numerator ", @w_numerator ;
+#            print " / ", @w_denominator ;
+#            print "\n";
+            
+#            print "[ ";
+#            print "'",$self->ngram_counter->ngrams_to_key(\@w_numerator), "'";
+#            print ", ";
+#            if (@w_denominator){
+#                print "'",$self->ngram_counter->ngrams_to_key(\@w_denominator), "'";
+#            } else {
+#                print "'", Lingua::Model::Ngram::Text::CORPUS_SEQ , "'" ;
+#            }
+#            print " ],\n";
+            
+            # numerator / denominator
+            push(@lambda, [
+                $self->ngram_counter->ngrams_to_key(\@w_numerator), 
+                (@w_denominator) ?
+                    $self->ngram_counter->ngrams_to_key(\@w_denominator) : 
+                    Lingua::Model::Ngram::Text::CORPUS_SEQ
+                ]
+            );
+        }
+        push(@combos, \@lambda);
+#        print "\n-----------------\n";
+        
+    }
+    
+#    print "Combo == ", Dumper(\@combos);
+    return \@combos;
+}
+
+
+
+
+1;
