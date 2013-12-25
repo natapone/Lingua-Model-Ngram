@@ -92,10 +92,10 @@ subtest 'Ngram sequence' => sub {
     };
     $ngrams = $text_engine->ngram($tokens, $params);
     $expected_ngrams = [
-          'CORPUS', 'CORPUS', 'CORPUS',
-          'CORPUS', 'CORPUS', 'CORPUS',
-          'CORPUS', 'CORPUS', 'CORPUS',
-          'CORPUS'
+          ['CORPUS'], ['CORPUS'], ['CORPUS'],
+          ['CORPUS'], ['CORPUS'], ['CORPUS'],
+          ['CORPUS'], ['CORPUS'], ['CORPUS'],
+          ['CORPUS']
         ];
     is_deeply($ngrams, $expected_ngrams, "return grams for corpus count correctly");
     
@@ -146,9 +146,10 @@ subtest 'Ngram with START STOP sequence' => sub {
     };
     $ngrams = $text_engine->ngram($tokens, $params);
     $expected_ngrams = [
-          'CORPUS', 'CORPUS', 'CORPUS', 'CORPUS',
-          'CORPUS', 'CORPUS', 'CORPUS', 'CORPUS',
-          'CORPUS', 'CORPUS', 'CORPUS', 'CORPUS'
+          ['CORPUS'], ['CORPUS'], ['CORPUS'],
+          ['CORPUS'], ['CORPUS'], ['CORPUS'],
+          ['CORPUS'], ['CORPUS'], ['CORPUS'],
+          ['CORPUS'], ['CORPUS'], ['CORPUS'],
         ];
     is_deeply($ngrams, $expected_ngrams, "return grams for corpus count correctly");
     

@@ -58,7 +58,13 @@ sub ngram () {
     #          use for counting number of corpus
     
     if ($window_size == 0) {
-        my @corpus_count = (CORPUS_SEQ) x (scalar @tokens);
+#        my @cp = (CORPUS_SEQ);
+#        my @corpus_count = (\@cp) x (scalar @tokens);
+        my @corpus_count;
+        for (1 .. scalar @tokens) {
+            push(@corpus_count, [CORPUS_SEQ]);
+        }
+        
         return \@corpus_count;
     }
     
