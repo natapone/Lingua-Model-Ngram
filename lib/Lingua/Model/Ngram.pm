@@ -27,12 +27,70 @@ has 'text_engine' => (is => 'ro', isa => 'Lingua::Model::Ngram::Text',
 has 'ngram_counter' => (is => 'ro', isa => 'Lingua::Model::Ngram::Count', 
                     lazy => 1, builder => '_build_ngram_counter');
 
+has 'ngram_count' => (is => 'ro', isa => 'HashRef', lazy => 1, builder => '_build_ngram_count');
+
+# linear interpolation estimation
+##has 'lambda_1' => (is => 'ro', isa => 'Num', lazy => 1, default => 0.5);
+##has 'lambda_2' => (is => 'ro', isa => 'Num', lazy => 1, default => 0.3);
+##has 'lambda_3' => (is => 'ro', isa => 'Num', lazy => 1, default => 0.2);
+
+has 'lambda' => (is => 'ro', isa => 'HashRef', lazy => 1, builder => '_build_lambda');
+
 sub _build_text_engine {
     return Lingua::Model::Ngram::Text->new();
 }
 
 sub _build_ngram_counter {
     return Lingua::Model::Ngram::Count->new();
+}
+
+sub _build_ngram_count {
+    die "Missing ngram_count.hash!";
+}
+
+sub _build_lambda {
+    return {
+        1 => 0.5,
+        2 => 0.3,
+        3 => 0.2,
+    };
+}
+
+sub sentence_probability {
+    my $self = shift;
+    my $grams = shift;
+    
+    my $combos = $self->_probability_combination($grams);
+#    print "Combo == ", Dumper($combos);
+    
+    my $sentence_prob = 1;
+    for my $estimates (@$combos) {
+#        print "estimates == ", Dumper($estimates);
+        my $estimate_prob = 0;
+        my $lambda_count = 1;
+        
+        for my $keys (@$estimates) {
+#            print "keys == ", Dumper($keys);
+            
+            my $c_numerator = $self->ngram_count->{@$keys[0]} || 0;
+            my $c_denominator = $self->ngram_count->{@$keys[1]} || 0;
+#            print "------", $self->lambda->{$lambda_count} ," * prop = $c_numerator / $c_denominator \n";
+            
+            if ($c_denominator > 0) {
+                 $estimate_prob += 
+                    $self->lambda->{$lambda_count} * ($c_numerator / $c_denominator);
+            }
+            
+            $lambda_count++;
+        }
+#        print "++++++ estimate_prob == $estimate_prob \n";
+        $sentence_prob *= $estimate_prob
+    }
+    
+    $sentence_prob *= 100;
+#    print "********** sentence_prob == $sentence_prob \n";
+    
+    return $sentence_prob;
 }
 
 sub _probability_combination {
@@ -50,7 +108,7 @@ sub _probability_combination {
     for my $ws (@$ngrams) {
 #        print Dumper($ws);
         
-        my @lambda;
+        my @estimate;
         my $ngram_length = scalar @$ws;
         
         for my $num_count (0 .. $ngram_length - 1) {
@@ -74,7 +132,7 @@ sub _probability_combination {
 #            print " ],\n";
             
             # numerator / denominator
-            push(@lambda, [
+            push(@estimate, [
                 $self->ngram_counter->ngrams_to_key(\@w_numerator), 
                 (@w_denominator) ?
                     $self->ngram_counter->ngrams_to_key(\@w_denominator) : 
@@ -82,7 +140,7 @@ sub _probability_combination {
                 ]
             );
         }
-        push(@combos, \@lambda);
+        push(@combos, \@estimate);
 #        print "\n-----------------\n";
         
     }
