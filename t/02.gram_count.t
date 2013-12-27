@@ -31,35 +31,53 @@ subtest 'Add N-grams' => sub {
     
     $ngram_counter->add_ngram($tri_ngrams);
     my $expected_count = {
-            '1-2-3' => 1,
-            '2-3-4' => 1,
-            '3-4-5' => 1,
+            '1-2-3' => {'TF' => 1},
+            '2-3-4' => {'TF' => 1},
+            '3-4-5' => {'TF' => 1},
     };
     is_deeply($ngram_counter->return_ngram_count, $expected_count, "ngram_count is correct");
     
     $ngram_counter->add_ngram($tri_ngrams);
-    my $expected_count = {
-            '1-2-3' => 2,
-            '2-3-4' => 2,
-            '3-4-5' => 2,
+    $expected_count = {
+            '1-2-3' => {'TF' => 2},
+            '2-3-4' => {'TF' => 2},
+            '3-4-5' => {'TF' => 2},
     };
     is_deeply($ngram_counter->return_ngram_count, $expected_count, "ngram_count is correct");
     
     $ngram_counter->add_ngram($bi_ngrams);
-    my $expected_count = {
-            '1-2-3' => 2,
-            '2-3-4' => 2,
-            '3-4-5' => 2,
-            '1-2'   => 1,
-            '2-3'   => 1,
+    $expected_count = {
+            '1-2-3' => {'TF' => 2},
+            '2-3-4' => {'TF' => 2},
+            '3-4-5' => {'TF' => 2},
+            '1-2'   => {'TF' => 1},
+            '2-3'   => {'TF' => 1},
     };
     is_deeply($ngram_counter->return_ngram_count, $expected_count, "ngram_count is correct");
     
+    # Trigger end document to create "DF"
+    $ngram_counter->add_df;
+    $expected_count = {
+            '1-2-3' => {'TF' => 2, 'DF' => 1},
+            '2-3-4' => {'TF' => 2, 'DF' => 1},
+            '3-4-5' => {'TF' => 2, 'DF' => 1},
+            '1-2'   => {'TF' => 1, 'DF' => 1},
+            '2-3'   => {'TF' => 1, 'DF' => 1},
+    };
+    is_deeply($ngram_counter->return_ngram_count, $expected_count, "Document frequency count is correct");
+    
+    $ngram_counter->add_ngram($bi_ngrams);
+    $ngram_counter->add_df;
+    $expected_count = {
+            '1-2-3' => {'TF' => 2, 'DF' => 1},
+            '2-3-4' => {'TF' => 2, 'DF' => 1},
+            '3-4-5' => {'TF' => 2, 'DF' => 1},
+            '1-2'   => {'TF' => 2, 'DF' => 2},
+            '2-3'   => {'TF' => 2, 'DF' => 2},
+    };
+    is_deeply($ngram_counter->return_ngram_count, $expected_count, "Document frequency count is correct");
 };
 
-#subtest 'Count N-grams for 2nd Markov' => sub {
-#    
-#    
-#};
+
 
 
