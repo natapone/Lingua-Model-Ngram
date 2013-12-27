@@ -50,9 +50,9 @@ sub _build_ngram_count {
 
 sub _build_lambda {
     return {
-        1 => 0.5,
+        1 => 0.6,
         2 => 0.3,
-        3 => 0.2,
+        3 => 0.1,
     };
 }
 
@@ -72,8 +72,8 @@ sub sentence_probability {
         for my $keys (@$estimates) {
 #            print "keys == ", Dumper($keys);
             
-            my $c_numerator = $self->ngram_count->{@$keys[0]} || 0;
-            my $c_denominator = $self->ngram_count->{@$keys[1]} || 0;
+            my $c_numerator = $self->ngram_count->{@$keys[0]}->{'TF'} || 0;
+            my $c_denominator = $self->ngram_count->{@$keys[1]}->{'TF'} || 0;
 #            print "------", $self->lambda->{$lambda_count} ," * prop = $c_numerator / $c_denominator \n";
             
             if ($c_denominator > 0) {
@@ -89,7 +89,6 @@ sub sentence_probability {
     
     $sentence_prob *= 100;
 #    print "********** sentence_prob == $sentence_prob \n";
-    
     return $sentence_prob;
 }
 
